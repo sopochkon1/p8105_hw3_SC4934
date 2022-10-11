@@ -8,3 +8,52 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+# library
+
+```{r}
+library(tidyverse)
+
+```
+
+
+## Problem 1
+
+
+```{r}
+devtools::install_github("p8105/p8105.datasets")
+library(p8105.datasets)
+data("instacart")
+```
+
+
+# Dataset description
+
+```{r, chunk_skim, results = "hide", message = FALSE}
+skimr::skim(instacart)
+```
+
+in the `instacart` dataset, there are 1384617 observations of 15 variables. of those 4 are character type and 11 are numeric. some of the key variables include `order_id` which is the order identifier,`product_id`, which is the product identifier, and `user_id`, which is the user identifier. 
+
+
+ 
+
+
+# how many aisles:
+
+```{r}
+instacart %>%
+  select(aisle_id) %>%
+  distinct
+
+
+instacart %>%
+  group_by(aisle_id) %>%
+  summarize(n_obs = n())
+```
+
+there are 134 aisles. 
+
+
+
+
+
