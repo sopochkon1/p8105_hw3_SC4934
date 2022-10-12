@@ -12,6 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
+library(ggplot2)
+library(gtsummary)
+
 
 ```
 
@@ -35,23 +38,135 @@ skimr::skim(instacart)
 in the `instacart` dataset, there are 1384617 observations of 15 variables. of those 4 are character type and 11 are numeric. some of the key variables include `order_id` which is the order identifier,`product_id`, which is the product identifier, and `user_id`, which is the user identifier. 
 
 
+ and giving illstrative examples of observations. Then, do or answer the following (commenting on the results of each):
+
  
-
-
 # how many aisles:
 
 ```{r}
 instacart %>%
-  select(aisle_id) %>%
+  select(aisle) %>%
   distinct
 
 
 instacart %>%
-  group_by(aisle_id) %>%
-  summarize(n_obs = n())
+  group_by(aisle) %>%
+  summarize(orders = n()) %>% 
+  arrange(desc(orders))
+
 ```
 
-there are 134 aisles. 
+there are 134 aisles. The most orders are from the fresh vegetables aisle (`aisle_id` = 83), with 150609 orders. 
+
+## plot
+
+```{r}
+
+instacart %>%
+  group_by(aisle) %>%
+  summarize(orders = n()) %>% 
+  arrange(desc(orders)) %>%
+  filter(orders > 10000) %>% 
+  mutate(aisle = fct_reorder(aisle, orders)) %>% 
+  ggplot(aes(x = orders, y = aisle)) +
+  geom_point() +
+  labs(
+    x = "N items ordered",
+    y = "Aisle",
+  ) + 
+  scale_x_continuous(
+    breaks = c(10000, 30000, 50000, 70000, 90000, 110000, 130000, 150000),
+    labels = c("10000", "30000", "50000", "70000", "90000", "110000", "130000", "150000")
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+
+Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
+## table
+
+```{r}
+popular_items = 
+  instacart %>%
+  group_by(aisle, product_name) %>% 
+  distinct() %>% 
+  summarize(orders = n()) %>% 
+  ungroup() %>% 
+  group_by(aisle) %>% 
+  mutate(rank = min_rank(desc(orders))) %>% 
+  filter(rank < 4) %>% 
+  filter(aisle == "packaged vegetables fruits"|aisle == "dog food care" | aisle == "baking ingredients") %>%
+  arrange(orders) %>% 
+  pivot_wider(
+    names_from = aisle,
+    values_from = orders,
+  ) %>% 
+  select(-rank)
+
+popular_items
+
+```
+
+
+## table 2
+ 
+```{r message=FALSE, warning=FALSE}
+time = 
+  instacart %>% 
+  group_by(product_name, order_hour_of_day, order_dow) %>% 
+  summarize(
+    mean_hour = mean(order_hour_of_day, na.rm = TRUE)
+  ) %>% 
+  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
+  ungroup() %>% 
+    pivot_wider(
+      names_from = product_name,
+      values_from = mean_hour
+    )
+  
+
+time = 
+  instacart %>% 
+  select(product_name, order_hour_of_day, order_dow) %>% 
+  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = order_hour_of_day
+    
+  )
+
+
+
+```
+ 
+ 
+    Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
+
+
+
+# Problem 2
+
+## load and tidy
+
+```{r}
+accel_data = 
+  read_csv(
+  "data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    weekend_vs_weekday = case_when(day == "Saturday"| day == "Sunday" ~ "Weekend", 
+    day == "Monday"| day == "Tuesday" | day == "Wednesday" | day =="Thursday" | day == "Friday" ~ "Weekday")
+  )
+
+
+
+```
+
+
+
 
 
 
