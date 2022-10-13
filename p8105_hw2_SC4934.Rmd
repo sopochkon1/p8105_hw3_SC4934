@@ -2,20 +2,32 @@
 title: "p8105_hw2_SC4934"
 output: github_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
 # library
 
-```{r}
+```{r setup, include=FALSE}
 library(tidyverse)
-library(ggplot2)
-library(gtsummary)
+library(ggridges)
+library(patchwork)
 
+library(p8105.datasets)
 
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 ```
 
 
@@ -23,11 +35,12 @@ library(gtsummary)
 
 
 ```{r}
-devtools::install_github("p8105/p8105.datasets")
-library(p8105.datasets)
 data("instacart")
-```
 
+instacart = 
+  instacart %>% 
+  as_tibble(instacart)
+```
 
 # Dataset description
 
@@ -35,25 +48,15 @@ data("instacart")
 skimr::skim(instacart)
 ```
 
-in the `instacart` dataset, there are 1384617 observations of 15 variables. of those 4 are character type and 11 are numeric. some of the key variables include `order_id` which is the order identifier,`product_id`, which is the product identifier, and `user_id`, which is the user identifier. 
+In the instacart dataset, there are `r nrow(instacart)` rows and `r ncol(instacart)` columns, with each row resprenting a single product from an instacart order. Variables include identifiers for user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, and number of days since prior order. Then there are several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether the item has been ordered by this user in the past. In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users
 
-
- and giving illstrative examples of observations. Then, do or answer the following (commenting on the results of each):
-
- 
 # how many aisles:
 
 ```{r}
-instacart %>%
-  select(aisle) %>%
-  distinct
 
-
-instacart %>%
-  group_by(aisle) %>%
-  summarize(orders = n()) %>% 
-  arrange(desc(orders))
-
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
 ```
 
 there are 134 aisles. The most orders are from the fresh vegetables aisle (`aisle_id` = 83), with 150609 orders. 
@@ -73,80 +76,54 @@ instacart %>%
   labs(
     x = "N items ordered",
     y = "Aisle",
+    title = "Number of items ordered in each aisle"
   ) + 
   scale_x_continuous(
     breaks = c(10000, 30000, 50000, 70000, 90000, 110000, 130000, 150000),
     labels = c("10000", "30000", "50000", "70000", "90000", "110000", "130000", "150000")
   ) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 ```
+
 
 
 Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
 ## table
 
+this table shows the three most popular items in aisles `baking ingredients`, `dog food care`, and `packaged vegetables fruits`, and the amount of times each item was ordered. 
+
+
 ```{r}
-popular_items = 
-  instacart %>%
-  group_by(aisle, product_name) %>% 
-  distinct() %>% 
-  summarize(orders = n()) %>% 
-  ungroup() %>% 
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
   group_by(aisle) %>% 
-  mutate(rank = min_rank(desc(orders))) %>% 
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
   filter(rank < 4) %>% 
-  filter(aisle == "packaged vegetables fruits"|aisle == "dog food care" | aisle == "baking ingredients") %>%
-  arrange(orders) %>% 
-  pivot_wider(
-    names_from = aisle,
-    values_from = orders,
-  ) %>% 
-  select(-rank)
-
-popular_items
-
+  arrange(desc(n)) %>%
+  knitr::kable()
 ```
-
 
 ## table 2
+
+this table shows 
  
 ```{r message=FALSE, warning=FALSE}
-time = 
-  instacart %>% 
-  group_by(product_name, order_hour_of_day, order_dow) %>% 
-  summarize(
-    mean_hour = mean(order_hour_of_day, na.rm = TRUE)
-  ) %>% 
-  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
-  ungroup() %>% 
-    pivot_wider(
-      names_from = product_name,
-      values_from = mean_hour
-    )
-  
 
-time = 
-  instacart %>% 
-  select(product_name, order_hour_of_day, order_dow) %>% 
-  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
-  pivot_wider(
-    names_from = order_dow,
-    values_from = order_hour_of_day
-    
-  )
-
-
+instacart %>%
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+  group_by(product_name, order_dow) %>%
+  summarize(mean_hour = mean(order_hour_of_day)) %>%
+  spread(key = order_dow, value = mean_hour) %>%
+  knitr::kable(digits = 2)
 
 ```
  
  
-    Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
-
-
-
-
+ this table shows the mean hour of day at whidh pink apples and coffee ice cream are ordered on each day of the week. the table was formatted in an untidy way so it is easier for humans to read. pink lady apples are mostly ordered earlier in the day than Coffee Ice Cream.
+ 
 # Problem 2
 
 ## load and tidy
