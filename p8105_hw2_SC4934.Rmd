@@ -87,9 +87,6 @@ instacart %>%
 ```
 
 
-
-Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
-
 ## table
 
 this table shows the three most popular items in aisles `baking ingredients`, `dog food care`, and `packaged vegetables fruits`, and the amount of times each item was ordered. 
@@ -133,14 +130,59 @@ accel_data =
   read_csv(
   "data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity",
+    values_to = "minutes",
+    names_prefix = 'activity_'
+  ) %>% 
   mutate(
     weekend_vs_weekday = case_when(day == "Saturday"| day == "Sunday" ~ "Weekend", 
     day == "Monday"| day == "Tuesday" | day == "Wednesday" | day =="Thursday" | day == "Friday" ~ "Weekday")
   )
 
 
+```
+
+the datasets includes `r nrow(accel_data)` rows and `r ncol(accel_data)` columns. the character variable `weekend_vs_weekday` was created. in total, there are `r accel_data %>% select(day_id) %>% distinct %>% count` days tracked in the dataset. 
+
+describe more
+
+
+## Aggregate table
+
+```{r}
+accel_data %>% 
+  group_by(week, day) %>% 
+  summarize(total = sum(minutes)) %>% 
+  pivot_wider(
+    names_from = day,
+    values_from = total,
+  ) %>% 
+  select(week, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday) %>% 
+  knitr::kable(digits=2) 
 
 ```
+
+some of the trends show decreased activity during the weekend compared to the weekdays. For example, activity 4 and 5 are generally lower in the weekend than the weekdays. activity 1 starts off lower on Monday and increases steadily during the week. 
+
+more trends?
+
+
+## plot 
+
+```{r}
+accel_data %>% 
+  group_by(week, day) %>% 
+  ggplot(aes(x = minutes, y = day, color = week )) +
+  geom_point()
+
+```
+
+plot needs more work
+
+
+## Problem 3
 
 
 
