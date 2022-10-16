@@ -125,15 +125,15 @@ instacart %>%
 
 ## load and tidy
 
-```{r}
+```{r warning = FALSE}
 accel_data = 
   read_csv(
   "data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity",
-    values_to = "minutes",
+    names_to = "minutes",
+    values_to = "activity_count",
     names_prefix = 'activity_'
   ) %>% 
   mutate(
@@ -144,17 +144,15 @@ accel_data =
 
 ```
 
-the datasets includes `r nrow(accel_data)` rows and `r ncol(accel_data)` columns. the character variable `weekend_vs_weekday` was created. in total, there are `r accel_data %>% select(day_id) %>% distinct %>% count` days tracked in the dataset. 
-
-describe more
+the datasets includes `r nrow(accel_data)` rows and `r ncol(accel_data)` columns. the character variable `weekend_vs_weekday` was created. in total, there are `r accel_data %>% select(day_id) %>% distinct %>% count` days tracked in the dataset. the variables include week, day_id, minutes, activity_count, and weekend_vs_weekday.  
 
 
 ## Aggregate table
 
-```{r}
+```{r warning = FALSE}
 accel_data %>% 
   group_by(week, day) %>% 
-  summarize(total = sum(minutes)) %>% 
+  summarize(total = sum(activity_count)) %>% 
   pivot_wider(
     names_from = day,
     values_from = total,
@@ -166,21 +164,28 @@ accel_data %>%
 
 some of the trends show decreased activity during the weekend compared to the weekdays. For example, activity 4 and 5 are generally lower in the weekend than the weekdays. activity 1 starts off lower on Monday and increases steadily during the week. 
 
-more trends?
 
 
 ## plot 
 
-```{r}
+```{r single panel plot, warning = FALSE}
 accel_data %>% 
-  group_by(week, day) %>% 
-  ggplot(aes(x = minutes, y = day, color = week )) +
-  geom_point()
+  mutate(
+    minutes = as.integer(minutes)
+  ) %>% 
+  ggplot(aes(x = minutes/60, y = activity_count, color = day)) +
+  geom_line() +
+  geom_point(alpha = .5)+
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "24-hour activity per day",
+    x = "Hour",
+    y = "Activity"
+  )
 
 ```
 
-plot needs more work
-
+from this plot we can observe that in general, the highest level of activity was between 5am - 10pm, with activity dropping off after 10pm. The highest levels of avtivity are observed in the morning hours ~10am, and in the evening ~8-9pm, while there is a plateau in between those hours for most days. 
 
 # Problem 3
 
@@ -251,9 +256,8 @@ ny_noaa %>%
 
 ```
 
+the graphs show that in January, majority of the stations detect temperatures that fluctuate between ~ -10 and 10 degrees Celsius, while in July they fluctuate between 20 to 35 degrees Celsius. There are outliers that detect temperatures as below -10 in January, as well as in July that detect temperatures lower than 20 such as ~14 degrees Celsius. 
 
-
-    Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
 ## plot 2
 
@@ -266,9 +270,8 @@ ny_noaa %>%
        x = "minimum temperature",
        y = "maximum temperature"
        ) +
-    theme(legend.position = "none") 
+    theme(legend.position = "right") 
   
-tmax_vs_tmin
 
 snowfall = 
   ny_noaa %>% 
@@ -283,13 +286,15 @@ snowfall =
 
      
 
-(snowfall + tmax_vs_tmin)
+(snowfall / tmax_vs_tmin)
  
 
 
 ```
 
+snowfall distribution per year shows that in most years, snowfall fluctuates and there are several peaks between 0 and 40, as well as one between 40 and 80 mm. there is generally higher frequency each year between 0-40mm than 40-80mm. 
 
+second panel (tmin vs tmax): 
 
 
 
