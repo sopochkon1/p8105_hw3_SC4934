@@ -214,18 +214,90 @@ ny_noaa = ny_noaa %>%
     tmin = as.integer(tmin),
     prcp = prcp/10,
     tmax = tmax/10,
-    tmin = tmin/10
-  )
+    tmin = tmin/10,
+    month = month.name[month]
+  ) 
 
-
+ny_noaa %>% 
+  select(snow) %>% 
+  table() %>% 
+  sort(decreasing = TRUE)  %>%
+  head(10) %>% view()
 
 
 
 ```
 
-`r instacart %>% select(product_id) %>% distinct %>% count`
+the most commonly observed value is 0 (frequency = 2008508), followed by 25 and 13 in the top 3. The most common ovserved value is 0 because it does not snow most of the time. 
 
- For snowfall, what are the most commonly observed values? Why?
+## plot
+
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+```{r}
+ny_noaa %>% 
+  filter(month %in% c("January", "July")) %>%
+  group_by(id, month, year) %>% 
+  summarise(mean_tmax = mean(tmax,na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = mean_tmax, color = id, color = id)) +
+  geom_line(alpha = .8) +
+  theme(legend.position = "none") +
+  facet_grid(.~month) +
+  labs(title = "Average max temperature in January and July",
+       x = "year",
+       y = "average max temperatures"
+       )
+
+
+```
+
+
+
+    Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+## plot 2
+
+```{r}
+tmax_vs_tmin =
+ny_noaa %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex()+
+  labs(title = "tmax vs tmin",
+       x = "minimum temperature",
+       y = "maximum temperature"
+       ) +
+    theme(legend.position = "none") 
+  
+tmax_vs_tmin
+
+snowfall = 
+  ny_noaa %>% 
+  filter(snow %in% (1:99)) %>% 
+  ggplot(aes(x = snow, y = as.factor(year), group = year)) +
+  geom_density_ridges() +
+  labs(
+    title = "Snowfall Distribution Per Year",
+    x = "snowfall in mm",
+    y = "year"
+  )
+
+     
+
+(snowfall + tmax_vs_tmin)
+ 
+
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
