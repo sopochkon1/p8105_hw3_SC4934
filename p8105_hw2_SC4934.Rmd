@@ -182,8 +182,50 @@ accel_data %>%
 plot needs more work
 
 
-## Problem 3
+# Problem 3
 
+## load data
+
+```{r}
+data("ny_noaa")
+
+ny_noaa = 
+  ny_noaa %>% 
+  as_tibble(ny_noaa) %>% 
+    janitor::clean_names() 
+
+
+skimr::skim(ny_noaa)
+```
+
+the dataset `ny_noaa` contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. there are 3 character, 1 date, and 3 numeric variables. the variables include id, which is the weather station ID, date - date of observation, precipitation and snowfall information in `prcp`,`snow` and `snwd`, and maximum and minimum temperatures in `tmax` and `tmin`. there are `r ny_noaa %>% select(id) %>% distinct %>% count` weather stations tracked in the dataset. There is a significant amount of missing data, especially in `tmin` and `tmax`. 
+
+
+## cleaning
+
+```{r}
+ny_noaa = ny_noaa %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-", convert = TRUE) 
+  
+ny_noaa = ny_noaa %>% 
+  mutate(
+    prcp = as.integer(prcp),
+    tmax = as.integer(tmax),
+    tmin = as.integer(tmin),
+    prcp = prcp/10,
+    tmax = tmax/10,
+    tmin = tmin/10
+  )
+
+
+
+
+
+```
+
+`r instacart %>% select(product_id) %>% distinct %>% count`
+
+ For snowfall, what are the most commonly observed values? Why?
 
 
 
