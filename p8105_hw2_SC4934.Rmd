@@ -191,7 +191,7 @@ from this plot we can observe that in general, the highest level of activity was
 
 ## load data
 
-```{r}
+```{r results = "hide", message = FALSE}
 data("ny_noaa")
 
 ny_noaa = 
@@ -261,7 +261,7 @@ the graphs show that in January, majority of the stations detect temperatures th
 
 ## plot 2
 
-```{r}
+```{r warning=FALSE}
 tmax_vs_tmin =
 ny_noaa %>% 
   ggplot(aes(x = tmin, y = tmax)) +
@@ -294,8 +294,7 @@ snowfall =
 
 snowfall distribution per year shows that in most years, snowfall fluctuates and there are several peaks between 0 and 40, as well as one between 40 and 80 mm. there is generally higher frequency each year between 0-40mm than 40-80mm. 
 
-second panel (tmin vs tmax): 
-
+the scond panel shows the frequency of minimum and maximum temperatures. as depicted on the graph, the highest counts fall between 10-15C on the minimum temperature scale and 20-30C on the maximum temperature scale. the count is also high around 0 on both scales. 
 
 
 
